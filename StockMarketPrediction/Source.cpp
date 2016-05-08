@@ -16,7 +16,7 @@ double Evaluate(NeuralNetwork * nn, vector<vector<Col<double>>> testData)
 	ss << "Results\\Apple1_HiddenLayers-15,15,15_LearningRate-0.01_MiniBatchSize-10\\Output-" << nn->Epoch << ".csv";
 
 	ofstream file(ss.str());
-
+	 
 	file << "Predicted Price (Real),Actual Price (Real),Error (Real),Predicted Price (Normalized),Actual Price (Normalized),Predicted Percent Change (Real),Actual Percent Change (Real),Predicted Percent Change (Normalized),Actual Percent Change (Normalized)" << endl;
 
 	long double meanError = 0;
