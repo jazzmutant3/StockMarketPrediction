@@ -41,7 +41,7 @@ double Evaluate(NeuralNetwork * nn, vector<vector<Col<double>>> testData)
 int main()
 {
 	//Connect To Database
-	ConnectToDatabase("SQL Server", "DESKTOP-38HSR7V", "EconomicData", &environmentHandle, &databaseConnectionHandle);
+	ConnectToDatabase("SQL Server", "67.209.77.168", "EconomicData", &environmentHandle, &databaseConnectionHandle);
 
 	//Fill database with stock data
 	//PopulateStockDatabase(databaseConnectionHandle);
