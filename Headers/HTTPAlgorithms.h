@@ -2,15 +2,16 @@
 #define HTTP_ALGORITHMS
 
 #define _CRT_SECURE_NO_WARNINGS
-#define _WINSOCK_DEPRECATED_NO_WARNINGS
+//#define _WINSOCK_DEPRECATED_NO_WARNINGS
 
 #include <string>
 #include <sstream>
-#include <WinSock2.h>
-#include <minwinbase.h>
+//#include <WinSock2.h>
+//#include <minwinbase.h>
 #include "StringAlgorithms.h"
+#include <curl/curl.h>
 
-#pragma comment(lib,"ws2_32.lib")
+//#pragma comment(lib,"ws2_32.lib")
 
 using namespace std;
 
@@ -63,57 +64,33 @@ string WebPageTitle(string WebPageData)
 	return ss.str();
 }
 
-string RetrieveWebpage(string hostname, string webpage, int * sent = NULL, int * recieved = NULL)
+static size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *userp)
 {
-	if (sent != NULL)
-		*sent = 0;
-	if (recieved != NULL)
-		*recieved = 0;
+	((string*)userp)->append((char*)contents, size * nmemb);
+	return size * nmemb;
+}
 
-	WSADATA wsaData;
+string RetrieveWebpage(string url)
+{
+	CURL * curl;
+	CURLcode res;
+	string output;
 
-	char * sendbuf = new char[sizeof("GET / HTTP/1.1\r\nHost: \r\nConnection: close\r\n\r\n") + strlen(hostname.c_str()) + strlen(webpage.c_str())];
-	if (sent != NULL)
-		*sent = sizeof("GET / HTTP/1.1\r\nHost: \r\nConnection: close\r\n\r\n") + (int)strlen(hostname.c_str()) + (int)strlen(webpage.c_str());
-	sprintf(sendbuf, "GET %s HTTP/1.1\r\nHost: %s\r\nConnection: close\r\n\r\n", webpage.c_str(), hostname.c_str());
+	curl = curl_easy_init();
 
-	WSAStartup(MAKEWORD(2, 2), &wsaData);
-
-	SOCKET Socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-
-	struct hostent *host;
-	host = gethostbyname(hostname.c_str());
-
-	SOCKADDR_IN SockAddr;
-	SockAddr.sin_port = htons(80);
-	SockAddr.sin_family = AF_INET;
-	SockAddr.sin_addr.s_addr = *((unsigned long*)host->h_addr);
-
-	connect(Socket, (SOCKADDR*)(&SockAddr), sizeof(SockAddr));
-
-	send(Socket, sendbuf, (int)strlen(sendbuf), 0);
-
-	char buffer[512];
-
-	stringstream ss;
-
-	int rec;
-	while ((rec = recv(Socket, buffer, sizeof(buffer), 0)) > 0)
+	if (curl)
 	{
-		int i = 0;
-		while (buffer[i] != '\0' && i < 512)
-		{
-			ss << buffer[i++];
-			if (recieved != NULL)
-				*recieved += 1;
-		}
-		ZeroMemory(buffer, sizeof(buffer));
+		curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+		curl_easy_setopt(curl, CURLOPT_WRITEDATA, &output);
+		curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, true);
+
+		res = curl_easy_perform(curl);
+
+		curl_easy_cleanup(curl);
 	}
 
-	closesocket(Socket);
-	WSACleanup();
-	delete[] sendbuf;
-	return ss.str();
+	return output;
 }
 
 void ParseURL(string URL, string * hostname, string * webpage)
