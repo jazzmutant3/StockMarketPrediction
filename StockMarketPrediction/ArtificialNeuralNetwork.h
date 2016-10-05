@@ -6,6 +6,7 @@
 #include <iostream>
 #include <random>
 #include <chrono>
+#include <fstream>
 
 using namespace std;
 using namespace arma;
@@ -86,14 +87,11 @@ public:
 	void StochasticGradientDescent(vector<vector<Col<double>>> trainingData, int epochs, int miniBatchSize, double eta, vector<vector<Col<double>>> testData)
 	{
 		this->Epoch = 0;
-
-		double bestResult;
-
+		
 		if (testData.size() > 0)
 		{
-			bestResult = this->Evaluate(this, testData);
+			cout << "Epoch " << this->Epoch << ": " << (double)this->Evaluate(this, testData) << endl;
 			this->Save();
-			cout << "Epoch " << this->Epoch << ": " << (double)bestResult << " {Saved}" << endl;
 		}
 
 		int n = (int)trainingData.size();
@@ -129,16 +127,8 @@ public:
 
 			if (testData.size() > 0)
 			{
-				double result = this->Evaluate(this, testData);
-				cout << "Epoch " << this->Epoch << ": " << (double)result;
-				if (abs(result) < abs(bestResult))
-				{
-					bestResult = result;
-					this->Save();
-					cout << " {Saved}" << endl;
-				}
-				else
-					cout << " {NotSaved}" << endl;
+				cout << "Epoch " << this->Epoch << ": " << (double)this->Evaluate(this, testData) << endl;
+				this->Save();
 			}
 			else
 				cout << "Epoch " << this->Epoch << " complete.";
